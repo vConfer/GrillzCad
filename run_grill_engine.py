@@ -10,6 +10,7 @@ def main():
     parser.add_argument("--stone-diameter", type=float, default=1.0)
     parser.add_argument("--spacing", type=float, default=0.15)
     parser.add_argument("--border-steps", type=int, default=4)
+    parser.add_argument("--border-mm", type=float, default=None)
 
     args = parser.parse_args()
 
@@ -17,7 +18,7 @@ def main():
         GrillEngine(args.input_stl)
         .load()
         .classify_surfaces()
-        .compute_design_region(border_steps=args.border_steps)
+        .compute_design_region(border_steps=args.border_steps, border_mm=args.border_mm)
         .generate_stones(
             stone_diameter=args.stone_diameter,
             spacing=args.spacing,

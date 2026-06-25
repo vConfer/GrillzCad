@@ -5,6 +5,7 @@ from engine.mesh_cleaner import clean_mesh
 from engine.surface_classifier import classify_surfaces
 from engine.adjacency import build_face_graph
 from engine.distance_field import face_distance_steps
+from engine.distance_mm import safe_faces_by_mm
 from engine.stone_layout import generate_hex_layout, save_stone_layout
 from engine.stone_markers import export_stone_markers
 from engine.seat_cutters import export_seat_cutters
@@ -28,15 +29,23 @@ class GrillEngine:
         self.classes = classify_surfaces(self.mesh)
         return self
 
-    def compute_design_region(self, border_steps=4):
+    def compute_design_region(self, border_steps=4, border_mm=None):
         facial_faces = self.classes["facial"]
         adjacency = build_face_graph(self.mesh)
-        distances = face_distance_steps(facial_faces, adjacency)
 
-        self.safe_faces = [
-            face for face, dist in distances.items()
-            if dist is not None and dist >= border_steps
-        ]
+        if border_mm is not None:
+            self.safe_faces = safe_faces_by_mm(
+                self.mesh,
+                facial_faces,
+                adjacency,
+                border_mm=border_mm,
+            )
+        else:
+            distances = face_distance_steps(facial_faces, adjacency)
+            self.safe_faces = [
+                face for face, dist in distances.items()
+                if dist is not None and dist >= border_steps
+            ]
 
         return self
 
