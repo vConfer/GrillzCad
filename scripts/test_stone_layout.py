@@ -4,6 +4,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from engine.stone_markers import export_stone_markers
 from engine.mesh_loader import load_mesh
 from engine.mesh_cleaner import clean_mesh
 from engine.surface_classifier import classify_surfaces
@@ -42,6 +43,8 @@ def main():
     out_dir.mkdir(exist_ok=True)
 
     save_stone_layout(stones, out_dir / "stone_centers.json")
+    export_stone_markers(stones, out_dir / "stone_markers.stl")
+    print(f"Exported: {out_dir / 'stone_markers.stl'}")
 
     print(f"Safe faces: {len(safe_faces)}")
     print(f"Generated stones: {len(stones)}")
