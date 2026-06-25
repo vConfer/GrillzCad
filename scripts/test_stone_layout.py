@@ -11,6 +11,7 @@ from engine.surface_classifier import classify_surfaces
 from engine.adjacency import build_face_graph
 from engine.distance_field import face_distance_steps
 from engine.stone_layout import generate_hex_layout, save_stone_layout
+from engine.seat_cutters import export_seat_cutters
 
 
 def main():
@@ -44,6 +45,8 @@ def main():
 
     save_stone_layout(stones, out_dir / "stone_centers.json")
     export_stone_markers(stones, out_dir / "stone_markers.stl")
+    export_seat_cutters(stones, out_dir / "seat_cutters.stl", depth=0.6)
+    print(f"Exported: {out_dir / 'seat_cutters.stl'}")
     print(f"Exported: {out_dir / 'stone_markers.stl'}")
 
     print(f"Safe faces: {len(safe_faces)}")
