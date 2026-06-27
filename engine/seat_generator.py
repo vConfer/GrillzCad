@@ -6,9 +6,9 @@ def make_round_stone_seat(
     point,
     normal,
     stone_diameter=1.0,
-    total_depth=0.65,
-    pilot_ratio=0.72,
-    bearing_ratio=0.98,
+    total_depth=0.55,
+    seat_ratio=1.05,
+    pilot_ratio=0.80,
 ):
     point = np.array(point, dtype=float)
     normal = np.array(normal, dtype=float)
@@ -16,29 +16,29 @@ def make_round_stone_seat(
 
     cut_dir = -normal
 
-    bearing_diameter = stone_diameter * bearing_ratio
+    seat_diameter = stone_diameter * seat_ratio
     pilot_diameter = stone_diameter * pilot_ratio
 
-    bearing_depth = total_depth * 0.35
-    cone_depth = total_depth * 0.40
+    bearing_depth = total_depth * 0.30
+    cone_depth = total_depth * 0.45
     pilot_depth = total_depth * 0.25
 
     bearing = trimesh.creation.cylinder(
-        radius=bearing_diameter / 2,
+        radius=seat_diameter / 2,
         height=bearing_depth,
-        sections=32,
+        sections=40,
     )
 
     cone = trimesh.creation.cone(
-        radius=bearing_diameter / 2,
+        radius=seat_diameter / 2,
         height=cone_depth,
-        sections=32,
+        sections=40,
     )
 
     pilot = trimesh.creation.cylinder(
         radius=pilot_diameter / 2,
         height=pilot_depth,
-        sections=32,
+        sections=40,
     )
 
     bearing.apply_translation([0, 0, -bearing_depth / 2])
@@ -50,12 +50,20 @@ def make_round_stone_seat(
     z_axis = np.array([0.0, 0.0, -1.0])
     transform = trimesh.geometry.align_vectors(z_axis, cut_dir)
     seat.apply_transform(transform)
-    seat.apply_translation(point)
+
+    # Start the cutter slightly above surface so boolean has overlap
+    seat.apply_translation(point + normal * 0.03)
 
     return seat
 
 
-def export_round_stone_seats(stones, path, total_depth=0.65):
+def export_round_stone_seats(
+    stones,
+    path,
+    total_depth=0.55,
+    seat_ratio=1.05,
+    pilot_ratio=0.80,
+):
     seats = []
 
     for stone in stones:
@@ -65,6 +73,8 @@ def export_round_stone_seats(stones, path, total_depth=0.65):
                 normal=[stone["nx"], stone["ny"], stone["nz"]],
                 stone_diameter=stone.get("diameter", 1.0),
                 total_depth=total_depth,
+                seat_ratio=seat_ratio,
+                pilot_ratio=pilot_ratio,
             )
         )
 
