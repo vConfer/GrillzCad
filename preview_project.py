@@ -32,8 +32,8 @@ def main():
     plotter = pv.Plotter(window_size=(1400, 900))
     plotter.set_background("black")
 
-    add_if_exists(plotter, out / "facial_full.stl", "white", 0.25)
-    add_if_exists(plotter, out / "design_safe_region.stl", "green", 0.75)
+    add_if_exists(plotter, out / "facial_full.stl", "white", 0.15)
+    add_if_exists(plotter, out / "design_safe_region.stl", "green", 1.0)
     add_if_exists(plotter, out / "stone_markers.stl", "cyan", 1.0)
     add_if_exists(plotter, out / "round_stone_seats.stl", "red", 1.0)
 

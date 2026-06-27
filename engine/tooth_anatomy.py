@@ -34,10 +34,10 @@ def compute_local_uv(mesh, face_indices):
 def filter_design_region_by_uv(
     mesh,
     face_indices,
-    u_min_ratio=0.12,
-    u_max_ratio=0.88,
-    v_min_ratio=0.18,
-    v_max_ratio=0.72,
+    u_min_ratio=0.16,
+    u_max_ratio=0.84,
+    v_min_ratio=0.42,
+    v_max_ratio=0.92,
 ):
     if not face_indices:
         return []

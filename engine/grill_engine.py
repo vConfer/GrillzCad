@@ -13,6 +13,8 @@ from engine.seat_cutters import export_seat_cutters
 from engine.seat_generator import export_round_stone_seats
 from engine.segmentation import submesh_from_faces
 from engine.tooth_anatomy import filter_design_region_by_uv
+from engine.mesh_stone_sampler import sample_stones_from_faces
+from engine.face_regions import connected_face_regions
 
 
 class GrillEngine:
@@ -54,16 +56,20 @@ class GrillEngine:
         self.safe_faces = filter_design_region_by_uv(
             self.mesh,
             self.safe_faces,
-            u_min_ratio=0.08,
-            u_max_ratio=0.92,
-            v_min_ratio=0.35,
-            v_max_ratio=0.95,
+            u_min_ratio=0.16,
+            u_max_ratio=0.84,
+            v_min_ratio=0.42,
+            v_max_ratio=0.92,
         )
+
+        print(f"Safe faces after anatomy filter: {len(self.safe_faces)}")
 
         return self
 
     def generate_stones(self, stone_diameter=1.0, spacing=0.15):
-        self.stones = generate_hex_layout(
+        print(f"Safe faces: {len(self.safe_faces)}")
+
+        self.stones = sample_stones_from_faces(
             self.mesh,
             self.safe_faces,
             stone_diameter=stone_diameter,
@@ -74,6 +80,8 @@ class GrillEngine:
             self.stones,
             min_spacing=spacing,
         )
+
+        print(f"Generated stones: {len(self.stones)}")
 
         return self
 
