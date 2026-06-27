@@ -4,17 +4,16 @@ from engine.distance_field import boundary_faces
 
 
 def face_distance_mm(mesh, face_indices, adjacency):
-    """
-    Approximate distance in millimeters from each face to the nearest
-    boundary face using triangle center distances.
-    """
     face_set = set(face_indices)
     boundary = boundary_faces(face_indices, adjacency)
     centers = mesh.triangles_center
 
-    distances = {}
+    if not boundary:
+        return {face: 0.0 for face in face_indices}
 
     boundary_centers = np.array([centers[f] for f in boundary])
+
+    distances = {}
 
     for face in face_indices:
         if face in boundary:

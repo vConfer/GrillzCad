@@ -2,7 +2,7 @@ from pathlib import Path
 
 from engine.mesh_loader import load_mesh
 from engine.mesh_cleaner import clean_mesh
-from engine.surface_classifier import classify_surfaces
+from engine.visibility_classifier import visible_faces_from_camera
 from engine.adjacency import build_face_graph
 from engine.distance_field import face_distance_steps
 from engine.distance_mm import safe_faces_by_mm
@@ -12,10 +12,10 @@ from engine.stone_markers import export_stone_markers
 from engine.seat_cutters import export_seat_cutters
 from engine.seat_generator import export_round_stone_seats
 from engine.segmentation import submesh_from_faces
+from engine.tooth_anatomy import filter_design_region_by_uv
 
 
 class GrillEngine:
-
     def __init__(self, input_path):
         self.input_path = Path(input_path)
         self.mesh = None
@@ -28,14 +28,20 @@ class GrillEngine:
         return self
 
     def classify_surfaces(self):
-        self.classes = classify_surfaces(self.mesh)
+        visible_faces = visible_faces_from_camera(self.mesh)
+        self.classes = {
+            "facial": visible_faces,
+            "back": [],
+            "edge": [],
+            "flat": [],
+        }
         return self
 
     def compute_design_region(self, border_steps=4, border_mm=None):
         facial_faces = self.classes["facial"]
         adjacency = build_face_graph(self.mesh)
 
-        if border_mm is not None:
+        if border_mm is not None and border_mm > 0:
             self.safe_faces = safe_faces_by_mm(
                 self.mesh,
                 facial_faces,
@@ -43,17 +49,20 @@ class GrillEngine:
                 border_mm=border_mm,
             )
         else:
-            distances = face_distance_steps(facial_faces, adjacency)
-            self.safe_faces = [
-                face
-                for face, dist in distances.items()
-                if dist is not None and dist >= border_steps
-            ]
+            self.safe_faces = list(facial_faces)
+
+        self.safe_faces = filter_design_region_by_uv(
+            self.mesh,
+            self.safe_faces,
+            u_min_ratio=0.08,
+            u_max_ratio=0.92,
+            v_min_ratio=0.35,
+            v_max_ratio=0.95,
+        )
 
         return self
 
     def generate_stones(self, stone_diameter=1.0, spacing=0.15):
-
         self.stones = generate_hex_layout(
             self.mesh,
             self.safe_faces,
@@ -69,39 +78,20 @@ class GrillEngine:
         return self
 
     def export_preview(self, output_dir):
-
         output_dir = Path(output_dir)
         output_dir.mkdir(exist_ok=True)
 
-        submesh_from_faces(
-            self.mesh,
-            self.classes["facial"],
-        ).export(output_dir / "facial_full.stl")
-
-        submesh_from_faces(
-            self.mesh,
-            self.safe_faces,
-        ).export(output_dir / "design_safe_region.stl")
-
-        save_stone_layout(
-            self.stones,
-            output_dir / "stone_centers.json",
+        submesh_from_faces(self.mesh, self.classes["facial"]).export(
+            output_dir / "facial_full.stl"
         )
 
-        export_stone_markers(
-            self.stones,
-            output_dir / "stone_markers.stl",
+        submesh_from_faces(self.mesh, self.safe_faces).export(
+            output_dir / "design_safe_region.stl"
         )
 
-        export_seat_cutters(
-            self.stones,
-            output_dir / "seat_cutters.stl",
-            depth=0.6,
-        )
-
-        export_round_stone_seats(
-            self.stones,
-            output_dir / "round_stone_seats.stl",
-        )
+        save_stone_layout(self.stones, output_dir / "stone_centers.json")
+        export_stone_markers(self.stones, output_dir / "stone_markers.stl")
+        export_seat_cutters(self.stones, output_dir / "seat_cutters.stl", depth=0.6)
+        export_round_stone_seats(self.stones, output_dir / "round_stone_seats.stl")
 
         return output_dir
