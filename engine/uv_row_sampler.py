@@ -21,8 +21,13 @@ def sample_uv_rows(mesh, face_indices, stone_diameter=1.0, spacing=0.15):
     row_height = pitch * 0.8660254
     min_distance = pitch
 
-    v_min = uv[:, 1].min()
-    v_max = uv[:, 1].max()
+    v_raw_min = uv[:, 1].min()
+    v_raw_max = uv[:, 1].max()
+    v_range = v_raw_max - v_raw_min
+
+    # Trim bottom and very top of UV design field
+    v_min = v_raw_min + v_range * 0.08
+    v_max = v_raw_min + v_range * 0.92
 
     stones = []
     row = 0
